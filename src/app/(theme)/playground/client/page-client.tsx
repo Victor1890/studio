@@ -101,6 +101,8 @@ export default function PlaygroundEditorBody({
   const [handler, setHandler] = useState<FileSystemFileHandle>();
   const [fileName, setFilename] = useState("");
 
+  console.log("handler: ", handler)
+
   const onReady = useCallback(() => {
     window
       .initSqlJs({
@@ -186,6 +188,22 @@ export default function PlaygroundEditorBody({
       });
     }
   }, [handler, sqlInit, db]);
+
+  const onDumpDatabase = useCallback(() => {
+    if (rawDb) {
+      saveAs(
+        new Blob([rawDb.export()], {
+          type: "application/x-sqlite3",
+        }),
+        "sqlite-dump.db"
+      );
+    }
+  }, [
+    db,
+    rawDb,
+    handler,
+    fileName,
+  ]);
 
   const sidebarMenu = useMemo(() => {
     return (
@@ -274,10 +292,17 @@ export default function PlaygroundEditorBody({
           </DropdownMenuItem>
         )}
 
+        {handler && (
+          <DropdownMenuItem onClick={onDumpDatabase}>
+            <LucideRefreshCw className="w-4 h-4 mr-2" />
+            Dump Database
+          </DropdownMenuItem>
+        )}
+
         <DropdownMenuSeparator />
       </div>
     );
-  }, [rawDb, handler, db, fileName, onReloadDatabase]);
+  }, [rawDb, handler, db, fileName, onReloadDatabase, onDumpDatabase]);
 
   useEffect(() => {
     if (handler && db) {
